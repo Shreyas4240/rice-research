@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useApp } from '../AppContext'
+import { apiUpload } from '../utils/api'
 
 const STEPS = [
   'Reading file…',
@@ -155,17 +156,8 @@ export default function Discover() {
       formData.append('file', file)
       formData.append('interests', mergedInterests())
       
-      const res = await fetch('/api/resume/upload', {
-        method:  'POST',
-        body: formData,
-      })
-
       setStep(2)
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.detail || `Server error ${res.status}`)
-      }
-      const { parsed_profile, session_id } = await res.json()
+      const { parsed_profile, session_id } = await apiUpload('/resume/upload', formData)
 
       setStep(3)
       localStorage.setItem('rice_session', JSON.stringify({

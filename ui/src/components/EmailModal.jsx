@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { apiPost } from '../utils/api'
 
 const TONES = [
   { id: 'professional', label: 'Professional' },
@@ -34,21 +35,12 @@ export default function EmailModal({ prof, session, onClose }) {
     setLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/email/draft', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          faculty_id: prof.id,
-          session_id: session?.id || null,
-          interests:  session?.interests ?? '',
-          tone:       selectedTone,
-        }),
+      const data = await apiPost('/email/draft', {
+        faculty_id: prof.id,
+        session_id: session?.id || null,
+        interests:  session?.interests ?? '',
+        tone:       selectedTone,
       })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err.error || `Server error ${res.status}`)
-      }
-      const data = await res.json()
       setDraft(data)
       setBodyEdit(data.body)
     } catch (e) {
