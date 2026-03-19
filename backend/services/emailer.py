@@ -160,10 +160,13 @@ def generate_draft(
     )
 
     try:
+        print(f"[emailer] Attempting Gemini LLM call for professor: {prof.get('name')}")
         raw = llm.chat_gemini(DRAFT_SYSTEM, prompt, max_tokens=700)
+        print(f"[emailer] Gemini response received: {raw[:100]}...")
         result = _parse_draft(raw)
         result["tone"] = tone
         return result
     except Exception as exc:
-        print(f"[emailer] Gemini LLM call failed ({exc}), using template")
+        print(f"[emailer] Gemini LLM call failed ({type(exc).__name__}: {exc}), using template")
+        print(f"[emailer] Exception details: {str(exc)}")
         return _template_draft(prof, resume_profile, interests, tone)
