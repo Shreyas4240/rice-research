@@ -1,0 +1,281 @@
+import { useState, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useApp } from '../AppContext'
+import { deptLabel } from '../utils/search'
+import { matchFaculty } from '../utils/matcher'
+import EmailModal from '../components/EmailModal'
+
+/* ── Fit badge ─────────────────────────────────────────────── */
+const FIT_CONFIG = {
+  strong_fit:      { label: 'Strong Fit',      cls: 'bg-emerald-50 text-emerald-800 ring-emerald-200' },
+  exploratory_fit: { label: 'Exploratory Fit', cls: 'bg-amber-50 text-amber-800 ring-amber-200' },
+  adjacent_fit:    { label: 'Adjacent Fit',    cls: 'bg-blue-50 text-blue-800 ring-blue-200' },
+}
+
+function FitBadge({ label }) {
+  const cfg = FIT_CONFIG[label] ?? FIT_CONFIG.adjacent_fit
+  return (
+    <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-[11px]
+                      font-semibold ring-1 ring-inset leading-none ${cfg.cls}`}>
+      {cfg.label}
+    </span>
+  )
+}
+
+const DEPT_STYLES = {
+  bioe:  'bg-pink-50 text-pink-800 ring-pink-200',
+  chbe:  'bg-amber-50 text-amber-800 ring-amber-200',
+  cee:   'bg-emerald-50 text-emerald-800 ring-emerald-200',
+  cmor:  'bg-violet-50 text-violet-800 ring-violet-200',
+  cs:    'bg-blue-50 text-blue-800 ring-blue-200',
+  ece:   'bg-indigo-50 text-indigo-800 ring-indigo-200',
+  msne:  'bg-rose-50 text-rose-800 ring-rose-200',
+  meche: 'bg-teal-50 text-teal-800 ring-teal-200',
+  stat:  'bg-zinc-50 text-zinc-800 ring-zinc-200',
+}
+
+function DeptBadge({ dept }) {
+  const s = DEPT_STYLES[dept] ?? 'bg-stone-100 text-stone-600 ring-stone-200'
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px]
+                      font-bold capitalize tracking-wide ring-1 ring-inset ${s}`}>
+      {deptLabel(dept)}
+    </span>
+  )
+}
+
+/* ── Match card ────────────────────────────────────────────── */
+function MatchCard({ result, onDraftEmail }) {
+  const { toggleSave, isSaved } = useApp()
+  const { professor: prof, fit_label, rank } = result
+  const saved     = isSaved(prof.id)
+  const interests = prof.scholar_interests || []
+
+  return (
+    <article className="group bg-ricewhite-50 rounded-2xl border border-ricewhite-300
+                        shadow-sm shadow-stone-900/[0.04]
+                        hover:shadow-xl hover:shadow-stone-900/[0.09]
+                        hover:border-stone-300 hover:-translate-y-0.5
+                        transition-all duration-200 flex flex-col overflow-hidden">
+      <div className="flex items-start justify-between gap-3 px-5 pt-5 pb-3">
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
+          <span className="font-display font-bold text-riceblue-700/40 text-[13px] flex-shrink-0 select-none">
+            #{rank}
+          </span>
+          <FitBadge label={fit_label} />
+          <DeptBadge dept={prof.department} />
+        </div>
+        <button onClick={() => toggleSave(prof.id)} title={saved ? 'Remove from saved' : 'Save'}
+                className={`flex-shrink-0 p-1.5 rounded-lg transition-all active:scale-90 ${
+                  saved ? 'text-riceblue-700 bg-riceblue-100 hover:bg-riceblue-200'
+                        : 'text-stone-300 hover:text-riceblue-700 hover:bg-riceblue-50'}`}>
+          {saved
+            ? <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M5 4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16l-7-4-7 4V4z"/></svg>
+            : <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4"><path d="M5 4a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16l-7-4-7 4V4z"/></svg>
+          }
+        </button>
+      </div>
+
+      <div className="px-5 pb-3">
+        <Link to={`/prof/${prof.id}`}
+              className="font-display font-bold text-stone-900 text-[17px] leading-snug
+                         hover:text-riceblue-700 transition-colors block mb-1">
+          {prof.name}
+        </Link>
+        {prof.title && <p className="text-[12px] text-stone-400 italic line-clamp-1">{prof.title}</p>}
+      </div>
+
+      <div className="px-5 py-3 bg-ricewhite-100/80 border-t border-ricewhite-300 flex items-center gap-2 flex-wrap">
+        <button onClick={() => onDraftEmail(prof)}
+                className="inline-flex items-center gap-1.5 text-[11px] px-3 py-1.5
+                           rounded-lg bg-riceblue-700 text-ricewhite-100 hover:bg-riceblue-600
+                           transition-colors font-semibold">
+          Draft Email
+          <svg viewBox="0 0 16 16" fill="currentColor" className="w-3 h-3">
+            <path d="M1.75 2h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0 1 14.25 14H1.75A1.75 1.75 0 0 1 0 12.25v-8.5C0 2.784.784 2 1.75 2ZM1.5 5.193v7.057c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V5.193l-5.412 3.608a1.5 1.5 0 0 1-1.676 0L1.5 5.193Zm13-1.676-6.263 4.175a.25.25 0 0 1-.274 0L1.5 3.517v-.267a.25.25 0 0 1 .25-.25h12.5a.25.25 0 0 1 .25.25v.267Z"/>
+          </svg>
+        </button>
+        {prof.profile_url && (
+          <a href={prof.profile_url} target="_blank" rel="noopener noreferrer"
+             className="inline-flex items-center gap-1 text-[11px] px-3 py-1.5 rounded-lg
+                        border border-ricewhite-400 text-stone-600 hover:border-riceblue-300
+                        hover:text-riceblue-700 hover:bg-riceblue-50 transition-colors font-medium">
+            Profile
+            <svg viewBox="0 0 12 12" fill="currentColor" className="w-2.5 h-2.5 opacity-60">
+              <path d="M3.5 3a.5.5 0 0 0 0 1H7.29L2.15 9.15a.5.5 0 1 0 .7.7L8 4.71V8.5a.5.5 0 0 0 1 0v-5a.5.5 0 0 0-.5-.5h-5Z"/>
+            </svg>
+          </a>
+        )}
+        <Link to={`/prof/${prof.id}`}
+              className="text-[11px] px-3 py-1.5 rounded-lg text-stone-400
+                         hover:text-riceblue-700 hover:bg-ricewhite-200 transition-colors font-medium ml-auto">
+          Details →
+        </Link>
+      </div>
+    </article>
+  )
+}
+
+/* ── Resume summary card ───────────────────────────────────── */
+function ResumeCard({ profile, interests, onReset }) {
+  if (!profile) return null
+  const themes = (profile.inferred_themes || []).slice(0, 5)
+  const skills = (profile.technical_skills || []).slice(0, 5)
+  return (
+    <div className="bg-ricewhite-50 rounded-2xl border border-ricewhite-300 p-5 mb-6">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div>
+          <div className="text-[10px] font-semibold text-stone-400 uppercase tracking-[0.14em] mb-0.5">
+            Matched from your resume
+          </div>
+          {profile.name && <div className="font-semibold text-stone-800 text-sm">{profile.name}</div>}
+          {(profile.year || profile.major) && (
+            <div className="text-xs text-stone-500 mt-0.5">
+              {[profile.year, profile.major].filter(Boolean).join(' · ')}
+            </div>
+          )}
+        </div>
+        <button onClick={onReset}
+                className="text-xs text-stone-400 hover:text-riceblue-700 transition-colors font-medium whitespace-nowrap">
+          Start over
+        </button>
+      </div>
+      {themes.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mb-2">
+          {themes.map(t => (
+            <span key={t} className="text-[11px] px-2.5 py-0.5 rounded-full bg-riceblue-50
+                                     border border-riceblue-200 text-riceblue-700 font-medium">{t}</span>
+          ))}
+        </div>
+      )}
+      {skills.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {skills.map(s => (
+            <span key={s} className="text-[11px] px-2.5 py-0.5 rounded-full bg-ricewhite-200
+                                     border border-ricewhite-300 text-stone-600">{s}</span>
+          ))}
+        </div>
+      )}
+      <div className="mt-3 pt-3 border-t border-ricewhite-300">
+        <span className="text-[11px] text-stone-400">
+          Interests: <span className="text-stone-600">{interests}</span>
+        </span>
+      </div>
+    </div>
+  )
+}
+
+/* ── Page ─────────────────────────────────────────────────── */
+export default function Match() {
+  const navigate = useNavigate()
+  const { faculty, loading: facultyLoading } = useApp()
+  const [session,   setSession]   = useState(null)
+  const [matches,   setMatches]   = useState([])
+  const [emailProf, setEmailProf] = useState(null)
+
+  useEffect(() => {
+    const raw = localStorage.getItem('rice_session')
+    if (!raw) { navigate('/discover'); return }
+    try {
+      const sess = JSON.parse(raw)
+      setSession(sess)
+    } catch {
+      navigate('/discover')
+    }
+  }, [navigate])
+
+  // Run matching once faculty is loaded and session is ready
+  useEffect(() => {
+    if (!session || facultyLoading || !faculty.length) return
+    const results = matchFaculty(faculty, session.interests, session.parsed_profile, 20)
+    setMatches(results)
+  }, [session, faculty, facultyLoading])
+
+  function handleReset() {
+    localStorage.removeItem('rice_session')
+    navigate('/discover')
+  }
+
+  if (facultyLoading || (session && !matches.length && faculty.length === 0)) {
+    return (
+      <div className="min-h-[calc(100vh-54px)] bg-ricewhite-100 flex items-center
+                      justify-center flex-col text-center px-4">
+        <div className="w-10 h-10 border-[3px] border-riceblue-700 border-t-transparent
+                        rounded-full animate-spin mb-5" />
+        <p className="font-semibold text-stone-800 text-sm">Matching faculty…</p>
+        <p className="text-xs text-stone-400 mt-1">Ranking professors by fit with your interests</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-[calc(100vh-54px)] bg-ricewhite-100">
+      <div className="relative bg-ricewhite-50 border-b border-ricewhite-300 overflow-hidden">
+        <div className="absolute inset-0 dot-texture opacity-40 pointer-events-none" />
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 pt-10 pb-8">
+          <div className="flex items-center gap-2.5 mb-3">
+            <span className="w-4 h-px bg-riceblue-700" />
+            <span className="text-xs font-semibold text-riceblue-700 uppercase tracking-[0.16em]">Your Matches</span>
+          </div>
+          <h1 className="font-display font-bold text-stone-900 text-3xl sm:text-4xl tracking-tight mb-1.5">
+            {matches.length} Research Matches Found
+          </h1>
+          <p className="text-[15px] text-stone-500">
+            Ranked by alignment with your interests. Click "Draft Email" to write a personalized outreach.
+          </p>
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-7">
+        {session && (
+          <ResumeCard
+            profile={session.parsed_profile}
+            interests={session.interests}
+            onReset={handleReset}
+          />
+        )}
+
+        {matches.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {matches.map((result, i) => (
+              <div key={result.professor.id} style={{
+                opacity: 0,
+                animation: `heroFadeUp 0.45s cubic-bezier(0.16,1,0.3,1) ${Math.min(i,12)*50}ms forwards`,
+              }}>
+                <MatchCard result={result} onDraftEmail={setEmailProf} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-24">
+            <p className="text-stone-500 text-sm mb-4">No matches found. Try broadening your interests.</p>
+            <button onClick={handleReset}
+                    className="px-6 py-2.5 bg-riceblue-700 text-ricewhite-100 rounded-xl
+                               text-sm font-semibold hover:bg-riceblue-600 transition-colors">
+              Try again
+            </button>
+          </div>
+        )}
+
+        {matches.length > 0 && (
+          <div className="mt-10 text-center border-t border-ricewhite-300 pt-8">
+            <p className="text-sm text-stone-500 mb-3">Want to browse all faculty without matching?</p>
+            <Link to="/search"
+                  className="inline-flex items-center gap-1.5 text-sm text-riceblue-700
+                             font-semibold hover:text-riceblue-600 transition-colors">
+              Go to Faculty Search →
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {emailProf && (
+        <EmailModal
+          prof={emailProf}
+          session={session}
+          onClose={() => setEmailProf(null)}
+        />
+      )}
+    </div>
+  )
+}

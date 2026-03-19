@@ -1,0 +1,29 @@
+# Rice University Engineering Faculty Directory Seeds
+# One URL per line. Lines starting with # are ignored.
+
+# Bioengineering
+https://bioengineering.rice.edu/people/faculty
+
+# Chemical and Biomolecular Engineering
+https://chbe.rice.edu/people/faculty
+
+# Civil and Environmental Engineering
+https://cee.rice.edu/people/faculty
+
+# Computational Applied Mathematics and Operations Research
+https://cmor.rice.edu/people/faculty
+
+# Computer Science
+https://csweb.rice.edu/people/faculty
+
+# Electrical and Computer Engineering
+https://ece.rice.edu/people/faculty
+
+# Materials Science and NanoEngineering
+https://msne.rice.edu/people/faculty
+
+# Mechanical Engineering
+https://mech.rice.edu/people/faculty
+
+# Statistics
+https://statistics.rice.edu/people/faculty

@@ -1,0 +1,3 @@
+crawler/.venv
+AWSCLIV2.pkg
+*.pkg
