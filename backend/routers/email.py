@@ -6,7 +6,7 @@ from db.database import get_db
 from db.models import FacultyRecord, ResumeSession
 from services import emailer
 from data_store import find_faculty_by_id
-from routers.resume_simple import sessions
+from routers.resume import sessions
 
 router = APIRouter()
 
