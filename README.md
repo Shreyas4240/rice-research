@@ -21,7 +21,7 @@ Upload your resume, enter your research interests, and get matched with Rice fac
 | Backend | FastAPI + SQLAlchemy + AI Services | `/backend` |
 | Frontend | Vite + React 18 + Tailwind CSS | `/ui` |
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Frontend (works without backend — static search only)
 
