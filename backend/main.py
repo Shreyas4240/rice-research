@@ -1,6 +1,5 @@
 import json
 import os
-from contextlib import asynccontextmanager
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -10,36 +9,29 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from db.database import init_db, SessionLocal
-from db.models import FacultyRecord
-
-
 # ---------------------------------------------------------------------------
-# Faculty auto-import on startup
+# Load faculty data from JSON file
 # ---------------------------------------------------------------------------
 
-def _auto_import_faculty():
-    CANDIDATES = [
+def load_faculty_data():
+    """Load faculty data from JSON file."""
+    candidates = [
         Path(__file__).parent.parent / "ui" / "public" / "faculty.json",
-        Path(__file__).parent / "data" / "faculty.json",
+        Path(__file__).parent / "data" / "faculty_fixed.json",
     ]
-    db = SessionLocal()
-    try:
-        if db.query(FacultyRecord).count() > 0:
-            return
-        for path in CANDIDATES:
-            if path.exists():
-                with open(path, encoding="utf-8") as f:
-                    data = json.load(f)
-                for item in data:
-                    db.add(FacultyRecord(**{k: v for k, v in item.items() if hasattr(FacultyRecord, k)}))
-                db.commit()
-                print(f"✓ Auto-imported {len(data)} faculty records from {path}")
-                return
-        print("⚠ No faculty.json found — run POST /api/faculty/import after placing faculty.json.")
-    finally:
-        db.close()
+    
+    for path in candidates:
+        if path.exists():
+            with open(path, encoding="utf-8") as f:
+                data = json.load(f)
+            print(f"✓ Loaded {len(data)} faculty records from {path}")
+            return data
+    
+    print("⚠ No faculty.json found")
+    return []
 
+# Global faculty data
+faculty_data = []
 
 # ---------------------------------------------------------------------------
 # App lifecycle
@@ -47,10 +39,9 @@ def _auto_import_faculty():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    init_db()
-    _auto_import_faculty()
+    global faculty_data
+    faculty_data = load_faculty_data()
     yield
-
 
 app = FastAPI(
     title="RiceResearchFinder API",
@@ -80,8 +71,19 @@ app.include_router(resume.router, prefix="/api/resume", tags=["Resume"])
 app.include_router(match.router, prefix="/api/match", tags=["Match"])
 app.include_router(email_router.router, prefix="/api/email", tags=["Email"])
 
+# ---------------------------------------------------------------------------
+# Health endpoint
+# ---------------------------------------------------------------------------
 
 @app.get("/api/health", tags=["Health"])
 def health():
     from services.llm import MOCK_MODE
     return {"status": "ok", "version": "1.0.0", "mock_mode": MOCK_MODE}
+
+# ---------------------------------------------------------------------------
+# Helper function for routers
+# ---------------------------------------------------------------------------
+
+def get_faculty_data():
+    """Get faculty data - used by routers"""
+    return faculty_data
