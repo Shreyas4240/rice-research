@@ -38,8 +38,15 @@ async def upload_resume(
     session_id = str(uuid.uuid4())
 
     try:
-        # Parse resume
-        parsed_profile = await parser.parse_resume(file)
+        # Read file content
+        file_content = await file.read()
+        file_bytes = file_content
+        
+        # Extract text from file
+        text = parser.extract_text(filename, file_bytes)
+        
+        # Parse resume text
+        parsed_profile = parser.parse_resume(text)
         
         # Store session in memory
         sessions[session_id] = {
