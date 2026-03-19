@@ -10,6 +10,12 @@ _together_client = None
 _gemini_client = None
 MOCK_MODE = not bool(os.getenv("TOGETHER_API_KEY"))
 GEMINI_MOCK_MODE = not bool(os.getenv("GEMINI_API_KEY"))
+
+# Debug: Print which APIs are available
+print(f"[LLM] TOGETHER_API_KEY available: {bool(os.getenv('TOGETHER_API_KEY'))}")
+print(f"[LLM] GEMINI_API_KEY available: {bool(os.getenv('GEMINI_API_KEY'))}")
+print(f"[LLM] MOCK_MODE: {MOCK_MODE}")
+print(f"[LLM] GEMINI_MOCK_MODE: {GEMINI_MOCK_MODE}")
 TOGETHER_MODEL = "ServiceNow-AI/Apriel-1.6-15b-Thinker"
 GEMINI_MODEL = "gemma-3-4b-it"
 
