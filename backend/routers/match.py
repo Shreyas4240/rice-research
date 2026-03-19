@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from services import matcher
-from main import get_faculty_data
+from data_store import get_faculty_data
 from routers.resume_simple import sessions
 
 router = APIRouter()

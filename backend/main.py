@@ -11,37 +11,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # ---------------------------------------------------------------------------
-# Load faculty data from JSON file
-# ---------------------------------------------------------------------------
-
-def load_faculty_data():
-    """Load faculty data from JSON file."""
-    candidates = [
-        Path(__file__).parent.parent / "ui" / "public" / "faculty.json",
-        Path(__file__).parent / "data" / "faculty.json",
-    ]
-    
-    for path in candidates:
-        if path.exists():
-            with open(path, encoding="utf-8") as f:
-                data = json.load(f)
-            print(f"✓ Loaded {len(data)} faculty records from {path}")
-            return data
-    
-    print("⚠ No faculty.json found")
-    return []
-
-# Global faculty data
-faculty_data = []
-
-# ---------------------------------------------------------------------------
 # App lifecycle
 # ---------------------------------------------------------------------------
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global faculty_data
-    faculty_data = load_faculty_data()
+    from data_store import load_faculty_data
+    load_faculty_data()
     yield
 
 app = FastAPI(
@@ -80,11 +56,3 @@ app.include_router(email_router.router, prefix="/api/email", tags=["Email"])
 def health():
     from services.llm import MOCK_MODE
     return {"status": "ok", "version": "1.0.0", "mock_mode": MOCK_MODE}
-
-# ---------------------------------------------------------------------------
-# Helper function for routers
-# ---------------------------------------------------------------------------
-
-def get_faculty_data():
-    """Get faculty data - used by routers"""
-    return faculty_data

@@ -1,8 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Literal, Optional
+from sqlalchemy.orm import Session
+from db.database import get_db
+from db.models import FacultyRecord, ResumeSession
 from services import emailer
-from main import get_faculty_data
+from data_store import find_faculty_by_id
 from routers.resume_simple import sessions
 
 router = APIRouter()
@@ -17,13 +20,8 @@ class DraftRequest(BaseModel):
 
 @router.post("/draft")
 def draft_email(req: DraftRequest):
-    # Load faculty from JSON
-    faculty_data = get_faculty_data()
-    prof = None
-    for faculty in faculty_data:
-        if faculty.get('id') == req.faculty_id:
-            prof = faculty
-            break
+    # Find faculty by ID
+    prof = find_faculty_by_id(req.faculty_id)
     
     if not prof:
         raise HTTPException(status_code=404, detail="Faculty not found.")

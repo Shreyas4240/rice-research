@@ -1,16 +1,7 @@
 from fastapi import APIRouter, HTTPException
-from main import get_faculty_data
+from data_store import get_faculty_data, find_faculty_by_id
 
 router = APIRouter()
-
-
-def find_faculty_by_id(faculty_id: str):
-    """Find faculty by ID in the JSON data."""
-    faculty_data = get_faculty_data()
-    for faculty in faculty_data:
-        if faculty.get('id') == faculty_id:
-            return faculty
-    return None
 
 
 @router.get("")
