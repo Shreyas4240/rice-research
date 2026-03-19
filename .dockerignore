@@ -1,0 +1,61 @@
+# Git
+.git
+.gitignore
+
+# Documentation
+README.md
+docs/
+
+# Node.js
+ui/
+node_modules/
+*.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Crawler
+crawler/
+*.csv
+*.json
+
+# Scripts
+*.sh
+deploy-aws.sh
+deploy-railway.sh
+
+# Large files
+*.pkg
+*.zip
+*.tar.gz
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Database
+*.db
+*.sqlite3
+
+# Uploads
+uploads/
