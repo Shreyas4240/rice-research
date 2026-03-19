@@ -59,7 +59,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,https://riceresearch.vercel.app").split(",")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
