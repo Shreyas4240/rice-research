@@ -189,6 +189,17 @@ export default function Search() {
   const [hasResearchOnly, setHasResearchOnly] = useState(hasRes)
   const [selectedChips,   setSelectedChips]   = useState(() => new Set(chipsParam ? chipsParam.split(',') : []))
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  const [showDropdown,    setShowDropdown]    = useState(false)
+  const [filteredProfs,   setFilteredProfs]   = useState([])
+
+  useEffect(() => {
+    if (query && showDropdown) {
+      const q = query.toLowerCase()
+      setFilteredProfs(faculty.filter(f => f.name && f.name.toLowerCase().includes(q)).slice(0, 5))
+    } else {
+      setFilteredProfs([])
+    }
+  }, [query, showDropdown, faculty])
 
   useEffect(() => {
     setQuery(qParam)
@@ -289,10 +300,10 @@ export default function Search() {
           </p>
 
           {/* Search bar */}
-          <form onSubmit={onSubmit} className="mb-5">
+          <form onSubmit={onSubmit} className="mb-5 relative">
             <div
               className="flex items-center rounded-2xl border-2 border-ricewhite-400 bg-white
-                         shadow-md overflow-hidden
+                         shadow-md overflow-hidden relative z-10
                          focus-within:border-riceblue-700 focus-within:shadow-lg
                          focus-within:shadow-riceblue-900/[0.08] transition-all duration-200"
             >
@@ -304,6 +315,8 @@ export default function Search() {
                 ref={inputRef}
                 type="text"
                 value={query}
+                onFocus={() => setShowDropdown(true)}
+                onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                 onChange={e => setQuery(e.target.value)}
                 placeholder='e.g. "battery materials" or "machine learning robotics"'
                 className="flex-1 px-4 py-4 text-[15px] text-stone-900 bg-transparent
@@ -332,6 +345,40 @@ export default function Search() {
                 Search
               </button>
             </div>
+
+            {showDropdown && filteredProfs.length > 0 && (
+              <div className="absolute z-20 w-full mt-2 bg-white border border-stone-200 rounded-xl shadow-xl max-h-64 overflow-y-auto animate-[modalSlideUp_0.15s_ease-out_forwards]">
+                <div className="px-4 py-2.5 text-[10px] font-bold text-stone-400 uppercase tracking-widest bg-stone-50 border-b border-stone-100 sticky top-0 z-10">
+                  Professor Suggestions
+                </div>
+                {filteredProfs.map((f, i) => (
+                  <div 
+                    key={i}
+                    className="px-4 py-3 cursor-pointer hover:bg-stone-50 border-b last:border-0 border-stone-100 transition-colors flex items-center justify-between group"
+                    onClick={() => {
+                      setQuery(f.name)
+                      if (f.department) {
+                        setDept(f.department)
+                        push(f.name, f.department, hasResearchOnly, selectedChips, 1)
+                      } else {
+                        push(f.name, dept, hasResearchOnly, selectedChips, 1)
+                      }
+                      setShowDropdown(false)
+                    }}
+                  >
+                    <div>
+                      <div className="font-medium text-stone-800 text-sm group-hover:text-riceblue-700 transition-colors">{f.name}</div>
+                      {f.department && <div className="text-[12px] text-stone-500 mt-0.5">{deptLabel(f.department)}</div>}
+                    </div>
+                    <div className="text-stone-300 group-hover:text-riceblue-600 transition-colors">
+                      <svg viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+                        <path fillRule="evenodd" d="M3 10a.75.75 0 01.75-.75h10.638L10.23 5.29a.75.75 0 111.04-1.08l5.5 5.25a.75.75 0 010 1.08l-5.5 5.25a.75.75 0 11-1.04-1.08l4.158-3.96H3.75A.75.75 0 013 10z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </form>
 
           {/* Chips */}
