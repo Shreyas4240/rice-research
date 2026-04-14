@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { STATUSES } from '../../utils/trackerStorage'
+import { useApp } from '../../AppContext'
 
 const EMPTY = {
   professorName: '',
@@ -46,6 +47,10 @@ export default function ApplicationFormModal({ initial = null, prefill = null, o
   const isEdit  = !!initial
   const firstFieldRef = useRef(null)
 
+  const { faculty } = useApp()
+  const [showProfDropdown, setShowProfDropdown] = useState(false)
+  const [filteredProfs, setFilteredProfs] = useState([])
+
   const [form, setForm] = useState(() => {
     if (initial)  return { ...EMPTY, ...initial }
     if (prefill)  return { ...EMPTY, ...prefill }
@@ -59,6 +64,16 @@ export default function ApplicationFormModal({ initial = null, prefill = null, o
     const t = setTimeout(() => firstFieldRef.current?.focus(), 80)
     return () => clearTimeout(t)
   }, [])
+
+  // Update filtered professors based on input
+  useEffect(() => {
+    if (form.professorName && showProfDropdown) {
+      const q = form.professorName.toLowerCase()
+      setFilteredProfs(faculty.filter(f => f.name && f.name.toLowerCase().includes(q)).slice(0, 5))
+    } else {
+      setFilteredProfs([])
+    }
+  }, [form.professorName, showProfDropdown, faculty])
 
   // Close on Escape
   useEffect(() => {
@@ -131,14 +146,39 @@ export default function ApplicationFormModal({ initial = null, prefill = null, o
             {/* Row: Professor + Lab */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Professor Name" required>
-                <input
-                  ref={firstFieldRef}
-                  type="text"
-                  value={form.professorName}
-                  onChange={e => set('professorName', e.target.value)}
-                  placeholder="Dr. Jane Smith"
-                  className={`${inputCls} ${errors.professorName ? 'border-red-300 ring-red-200' : ''}`}
-                />
+                <div className="relative">
+                  <input
+                    ref={firstFieldRef}
+                    type="text"
+                    value={form.professorName}
+                    onFocus={() => setShowProfDropdown(true)}
+                    onBlur={() => setTimeout(() => setShowProfDropdown(false), 200)}
+                    onChange={e => set('professorName', e.target.value)}
+                    placeholder="Dr. Jane Smith"
+                    className={`${inputCls} ${errors.professorName ? 'border-red-300 ring-red-200' : ''}`}
+                  />
+                  {showProfDropdown && filteredProfs.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border border-stone-200 rounded-xl shadow-lg max-h-48 overflow-y-auto animate-[modalSlideUp_0.15s_ease-out_forwards]">
+                      {filteredProfs.map((f, i) => {
+                        const deptLabel = DEPT_OPTIONS.find(o => o.value === f.department)?.label || f.department
+                        return (
+                          <div 
+                            key={i}
+                            className="px-3 py-2 cursor-pointer hover:bg-stone-50 border-b last:border-0 border-stone-100 transition-colors"
+                            onClick={() => {
+                              set('professorName', f.name)
+                              if (f.department) set('department', f.department)
+                              setShowProfDropdown(false)
+                            }}
+                          >
+                            <div className="font-medium text-stone-800 text-sm">{f.name}</div>
+                            {deptLabel && <div className="text-[11px] text-stone-500 mt-0.5">{deptLabel}</div>}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
                 {errors.professorName && (
                   <p className="text-[11px] text-red-600 mt-1">{errors.professorName}</p>
                 )}
